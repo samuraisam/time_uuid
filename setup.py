@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="time_uuid",
-    version="0.1",
+    version="0.1.0",
     url='http://github.com/samuraisam/time_uuid',
     author='Samuel Sutch',
     author_email='samuel.sutch@gmail.com',
