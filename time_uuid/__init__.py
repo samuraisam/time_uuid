@@ -87,13 +87,13 @@ class TimeUUID(uuid.UUID):
         return cls.with_timestamp(mkutime(d))
 
     @classmethod
-    def with_utcnow(cls):
+    def with_utcnow(cls, randomize=True):
         """
         Create a TimeUUID with the current datetime in UTC. Every TimeUUID
         generated this way, on this machine, will proceed the TimeUUID generated
         before it, by use of a mutex.
         """
-        return cls.with_timestamp(cls.timestamp_factory())
+        return cls.with_timestamp(cls.timestamp_factory(), randomize=randomize)
 
     @classmethod
     def convert(cls, value, randomize=True, lowest_val=False):
