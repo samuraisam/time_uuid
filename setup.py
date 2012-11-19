@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="time-uuid",
-    version="0.1.0",
+    version="0.1.1",
     url='http://github.com/samuraisam/time_uuid',
     author='Samuel Sutch',
     author_email='samuel.sutch@gmail.com',
