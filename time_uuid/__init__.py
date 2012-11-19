@@ -105,7 +105,8 @@ class TimeUUID(uuid.UUID):
         :returns: A TimeUUID object
         :type d: TimeUUID
         """
-        return cls.with_timestamp(mkutime(d))
+        return cls.with_timestamp(mkutime(d), randomize=randomize, 
+                                  lowest_val=lowest_val)
 
     @classmethod
     def with_utcnow(cls, randomize=True):
