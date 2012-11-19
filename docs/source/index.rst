@@ -8,6 +8,9 @@ Welcome to time-uuid's documentation!
 
 time_uuid is a lightweight Python library for sensibly dealing with UUIDv1 (or TimeUUIDs as we like to sometimes call them). It allows you to create UUIDv1s in a variety of different ways. Take a look at `the docs <http://packages.python.org/time-uuid>`_ for the interface.
 
+The Interface
+-------------
+
 .. automodule:: time_uuid
     
     .. autoclass:: TimeUUID
