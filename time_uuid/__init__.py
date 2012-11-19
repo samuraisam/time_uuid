@@ -7,12 +7,23 @@ import random
 
 def utctime():
     """
-    Generate a timestamp from the current time in UTC
+    Generate a timestamp from the current time in UTC. Returns exactly
+    the same thing as :py:func`time.time` but with a UTC offset instead
+    of a local one
+
+    :returns: a timestamp
+    :rtype: float
     """
     d = datetime.datetime.utcnow()
     return mkutime(d)
 
 def mkutime(d):
+    """
+    Generate a UTC timestamp from the datetime object.
+
+    :param d: a :py:class:`datetime` object
+    :type d: datetime
+    """
     return float(calendar.timegm(d.timetuple())) + float(d.microsecond) / 1e6
 
 
@@ -79,10 +90,20 @@ class TimeUUID(uuid.UUID):
                         "(it is a '%s')" % (other, other.__class__.__name__))
 
     @classmethod
-    def with_utc(cls, d):
+    def with_utc(cls, d, randomize=True, lowest_val=False):
         """
-        Create a TimeUUID with any datetime in UTC. By nature, this generates
-        a TimeUUID that is not roughly guaranteed to be sequenced correctly.
+        Create a TimeUUID with any datetime in UTC. Only use this if you are sure
+        you are creating your datetime objects properly and can predict how
+        the :py:class:`TimeUUID` will sort (if that is at all necessary).
+
+        See :py:meth:`with_timestamp` for a description of how `randomize` and
+        `lowest_val` arguments work.
+
+        :param d: A datetime object
+        :type d: datetime
+
+        :returns: A TimeUUID object
+        :type d: TimeUUID
         """
         return cls.with_timestamp(mkutime(d))
 
@@ -90,8 +111,15 @@ class TimeUUID(uuid.UUID):
     def with_utcnow(cls, randomize=True):
         """
         Create a TimeUUID with the current datetime in UTC. Every TimeUUID
-        generated this way, on this machine, will proceed the TimeUUID generated
+        generated this way, on this machine, will supersede the TimeUUID generated
         before it, by use of a mutex.
+
+        :param randomize: Whether or not to randomize the other bits in the UUID.
+        Defaults to `True`
+        :type randomize: bool
+
+        :returns: A TimeUUID object
+        :rtype: TimeUUID
         """
         return cls.with_timestamp(cls.timestamp_factory(), randomize=randomize)
 
@@ -99,10 +127,16 @@ class TimeUUID(uuid.UUID):
     def convert(cls, value, randomize=True, lowest_val=False):
         """
         Try to convert a number of different types to a TimeUUID. Works for
-        datetimes, ints (timestamps) and UUIDs.
+        datetimes, ints (which it treats as timestamps) and UUIDs.
 
-        See :meth:`with_timestamp` for instructions on the randomize/lowest_val
-        arguments.
+        See :py:meth:`with_timestamp` for descriptions of the `randomize` and
+        `lowest_val` arguments.
+
+        :param value: An instance of UUID, TimeUUID, datetime or timestamp
+            int or float
+
+        :returns: A TimeUUID object
+        :rtype: TimeUUID
         """
         if isinstance(value, cls):
             return value
@@ -111,7 +145,7 @@ class TimeUUID(uuid.UUID):
         if isinstance(value, datetime.datetime):
             return cls.with_timestamp(mkutime(value), randomize=randomize,
                 lowest_val=lowest_val)
-        if isinstance(value, int):
+        if isinstance(value, (int, long, float)):
             return cls.with_timestamp(value, randomize=randomize,
                 lowest_val=lowest_val)
         raise ValueError("Sorry, I don't know how to convert {} to a "
@@ -120,17 +154,27 @@ class TimeUUID(uuid.UUID):
     @classmethod
     def with_timestamp(cls, timestamp, randomize=True, lowest_val=False):
         """
-        Create a TimeUUID with any timestamp. Here be dragons. No guarantees.
+        Create a TimeUUID with any timestamp. Be sure that the timestamp is 
+        created with the correct offset. If you are using :py:func:`time.time`
+        be sure to know that in python, it may be offset by your machine's
+        time zone!
 
-        `randomize` will create a UUID with randomish bits. This overrides
-        it's counterpart: `lowest_val` If randomize is False and `lowest_val`
-        is False, it will generate a UUID with the highest possible clock seq
-        for the same timestamp, otherwise generating a UUID with the *lowest*
-        possible clock seq for the same timestamp;
+        :param timestamp: A timestamp, like that returned by :py:func:`utctime`
+            or py:func:`time.time`.
+        :type timestamp: float
+        :param randomize: will create a UUID with randomish bits. This overrides
+            it's counterpart: `lowest_val` If randomize is False and `lowest_val`
+            is False, it will generate a UUID with the highest possible clock seq
+            for the same timestamp, otherwise generating a UUID with the *lowest*
+            possible clock seq for the same timestamp. Defaults to `True`
+        :type randomize: bool
+        :param lowest_val: will create a UUID with the lowest possible clock seq if
+            randomize is False if set to True, otherwise generating the highest
+            possible. Defaults to `False`
+        :type lowest_val: bool
 
-        `lowest_val` will create a UUID with the lowest possible clock seq if
-        randomize is False if set to True, otherwise generating the highest
-        possible
+        :returns: A TimeUUID object
+        :rtype: TimeUUID
         """
         ns = timestamp * 1e9
         ts = int(ns // 100) + 0x01b21dd213814000L
