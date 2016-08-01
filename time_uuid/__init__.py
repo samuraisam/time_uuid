@@ -1,8 +1,11 @@
+import sys
 import uuid
 import datetime
 import time, calendar
 import threading
 import random
+if sys.version_info > (3,):
+    long = int
 
 
 def utctime():
@@ -76,7 +79,11 @@ class TimeUUID(uuid.UUID):
         return datetime.datetime.utcfromtimestamp(self.get_timestamp())
 
     def get_timestamp(self):
-        return (self.get_time() - 0x01b21dd213814000L) / 1e7
+        try:
+            t = self.get_time()
+        except AttributeError:
+            t = self.time
+        return (t - long(0x01b21dd213814000)) / 1e7
 
     @classmethod
     def upgrade(cls, other):
@@ -178,24 +185,24 @@ class TimeUUID(uuid.UUID):
         :rtype: TimeUUID
         """
         ns = timestamp * 1e9
-        ts = int(ns // 100) + 0x01b21dd213814000L
-        time_low = ts & 0xffffffffL
-        time_mid = (ts >> 32L) & 0xffffL
-        time_hi_version = (ts >> 48L) & 0x0fffL
+        ts = int(ns // 100) + long(0x01b21dd213814000)
+        time_low = ts & long(0xffffffff)
+        time_mid = (ts >> 32) & long(0xffff)
+        time_hi_version = (ts >> long(48)) & long(0x0fff)
         if randomize:
-            cs = random.randrange(1<<14L)
-            clock_seq_low = cs & 0xffL
-            clock_seq_hi_variant = (cs >> 8L) & 0x3fL
+            cs = random.randrange(1<<long(14))
+            clock_seq_low = cs & long(0xff)
+            clock_seq_hi_variant = (cs >> long(8)) & long(0x3f)
             node = uuid.getnode()
         else:
             if lowest_val: # uuid with lowest possible clock value
-                clock_seq_low = 0 & 0xffL
-                clock_seq_hi_variant = 0 & 0x3fL
-                node = 0 & 0xffffffffffffL # 48 bits
+                clock_seq_low = 0 & long(0xff)
+                clock_seq_hi_variant = 0 & long(0x3f)
+                node = 0 & long(0xffffffffffff) # 48 bits
             else: # UUID with highest possible clock value
-                clock_seq_low = 0xffL
-                clock_seq_hi_variant = 0x3fL
-                node = 0xffffffffffffL # 48 bits
+                clock_seq_low = long(0xff)
+                clock_seq_hi_variant = long(0x3f)
+                node = long(0xffffffffffff) # 48 bits
         return cls(
             fields=(time_low, time_mid, time_hi_version,
                     clock_seq_hi_variant, clock_seq_low, node),
